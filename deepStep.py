@@ -83,21 +83,24 @@ b_fc2 = bias_variable([H*W])
 
 y = tf.nn.relu(tf.matmul(h_drop, W_fc2) + b_fc2)
 
-loss = tf.sqrt(tf.divide(tf.reduce_sum(tf.square(tf.subtract(y,y_))),tf.reduce_sum(y_)))
+#loss = tf.sqrt(tf.divide(tf.reduce_sum(tf.square(tf.subtract(y,y_))),tf.reduce_sum(y_)))
 #loss = tf.divide(tf.sqrt(tf.reduce_sum(tf.square(tf.subtract(y,y_)))),tf.reduce_sum(y_))
 #loss = tf.divide(tf.reduce_sum(tf.divide(tf.abs(tf.subtract(y,y_)),y_)),batchSize)
 #loss = tf.divide(tf.sqrt(tf.reduce_sum(tf.square(tf.subtract(y,y_)))),tf.reduce_sum(y_))
+loss = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y,y_))))
 train_step = tf.train.AdamOptimizer(1e-4).minimize(loss)
-accuracy = 1 - loss
-
+accuracy = 1 - tf.divide(tf.sqrt(tf.reduce_sum(tf.square(tf.subtract(y,y_)))),tf.reduce_sum(y_))
+lossValue = tf.reduce_sum(tf.abs(tf.subtract(y,y_)))
+#accuracy = 1 - tf.reduce_sum(tf.divide(tf.abs(tf.subtract(y,y_)),y_))
 sess.run(tf.initialize_all_variables())
 readData.read()
 for i in range(5000):
 	batch = readData.readBatch(batchSize)
 	if i%20 == 0:
-		train_accuracy = accuracy.eval(feed_dict={x:batch[0], y_: batch[1], keep_prob: 1.0})
-		print "step %d, training accuracy %g"%(i, train_accuracy)
-		#print "step %d, training loss %g"%(i, train_accuracy)
+		#train_accuracy = accuracy.eval(feed_dict={x:batch[0], y_: batch[1], keep_prob: 1.0})
+		#print "step %d, training accuracy %g"%(i, train_accuracy)
+		loss_accuracy = lossValue.eval(feed_dict={x:batch[0], y_: batch[1], keep_prob: 1.0})
+		print "step %d, training loss %g"%(i, loss_accuracy / batchSize)
 	train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})	
 
 #print "test accuracy %g"%accuracy.eval(feed_dict={x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0})
