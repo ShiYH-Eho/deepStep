@@ -48,7 +48,7 @@ def readNetNodes(mMap):
    for i in range(W):
       infoNet.append([])
       for j in range(H):
-         infoNet[i].append([])
+         infoNet[i].append({})
    for net in nets:
       x = int(net.getAttribute('x'))
       y = int(net.getAttribute('y'))
@@ -57,7 +57,7 @@ def readNetNodes(mMap):
          nodeId = node.getAttribute('id')
          lat = node.getAttribute('lat')
          lon = node.getAttribute('lon')
-         infoNet[x][y].append([nodeId,[lat,lon]])
+         infoNet[x][y][nodeId] = [lat,lon]
    return infoNet
 
 def readNodeWay(mMap):
