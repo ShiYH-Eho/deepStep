@@ -4,11 +4,11 @@ from readRoadNet import *
 import numpy as np
 from const import *
 
-mMap = readXml('../data/map/chengduMap.xml')
+mMap = readXml('../data/map/map.xml')
 infoNodes = readNodes(mMap)
 infoWays = readWays(mMap)
 infoRelations = readRelations(mMap)
-
+'''
 nodeWay = {}
 
 for wayId in infoWays:
@@ -66,7 +66,7 @@ for i in range(W):
 f = open('../data/map/net_node.xml','w')
 dom1.writexml(f,indent='',addindent='\t',newl='\n',encoding='UTF-8')
 f.close()
-'''
+
 '''
 dom1 = xml.dom.minidom.Document()
 root1 = dom1.createElement('root')

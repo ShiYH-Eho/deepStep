@@ -3,6 +3,7 @@ import numpy as np
 import math
 import sys
 import os
+import json
 from const import *
 from readRoadNet import *
 
@@ -14,21 +15,24 @@ netNodeInfo = readNetNodes(netNode)
 
 roadSpeedList = {}
 
-savePath = '../data/traffic_%dmin_%d*%d' % (timeUnit / 60,H,W)
+savePath = '../data/speed_%dmin_%d*%d' % (timeUnit / 60,H,W)
 if not os.path.exists(savePath):
 	os.mkdir(savePath)
 
 def handleOrder(orderList,startTime):
 	newList = sorted(orderList,key = lambda x : x[2])
 	speedList = []
-	timeStamp = -1
 	mList = []
-	t = int(math.floor((newList[0][2] - startTime) / timeUnit))
-	node = getNodeByPos(newList[0][3],newList[0][4])
+	t = int(math.floor((int(newList[0][2]) - startTime) / timeUnit))
+	node = getNodeByPos(newList[0][3],newList[0][4],netNodeInfo)
+	timeStamp = t
+	targetNode = node
+	print str(t) + ' ' + str(node)
 	for i in range(len(newList) - 1):
 		#t = 
-		t = int(math.floor((newList[i][2] - startTime) / timeUnit))
-		node = getNodeByPos(newList[i][3],newList[i][4])
+		t = int(math.floor((int(newList[i][2]) - startTime) / timeUnit))
+		node = getNodeByPos(newList[i][3],newList[i][4],netNodeInfo)
+		print str(t) + ' ' + str(node)
 		if t < 0:
 			t = 0
 		elif t >= T:
@@ -46,7 +50,8 @@ def handleOrder(orderList,startTime):
 			speedList.append([timeStamp,targetNode,sum])
 			targetNode = node
 			timeStamp = t
-		return speedList
+			mList = [[t,node,speed]]
+	return speedList
 
 def handleData(filename):
 	trafficGraph = np.zeros((T,W,H),dtype = int)
@@ -84,53 +89,70 @@ def handleData(filename):
 	np.savetxt(savePath + '/traffic_%s' % (filename[-4:]), toWrite,fmt = '%d')
 
 def dataToSpeed(filename):
-	trafficGraph = np.zeros((T,W,H),dtype = int)
+	trafficGraph = []
+	for i in range(T):
+		trafficGraph.append({})
 	f = open(filename,'r')
 	count = 0
 	size = 0
-	orderList = []
-	orderId = ''
+	data = f.readline().split(',')
+	orderId = data[1]
+	orderList = [data]
 	startTime = timeStart + (60*60*24) * (int(filename[-2:]) - 1) + (60*60*24*31) * int(filename[-3:-2])
 	for line in f.readlines():
 		data = line.split(',')
-		if count % 100000 == 0:
+		if count % 1 == 0:
 			count = 0
 			size += 1
 			print '%d.handle message of %s' % (size,data[1])
 		if orderId == data[1]:
 			orderList.append(data)
 		else:
-			orderId = data[1]
 			speedList = handleOrder(orderList,startTime)
-			newList = []
-			timeStamp = -1
 			for speedInfo in speedList:
-				t = int(math.floor((speedInfo[0] - startTime) / timeUnit))
-				pos = getPos(speedInfo[1][0],speedInfo[1][1])
-				if pos[0] < 0 or pos[1] < 0:
-					print 'error: %s' % str(data)
-					continue
-				if t < 0:
-					t = 0
-				elif t >= T:
-					t = T - 1
-				if t == timeStamp:
-					newList.append(speedInfo[2])
-				else:
-					timeStamp = t
-					speedSum = 0
-					for speed in newList:
-						speedSum += speed
-					speedSum /= len(newList)
-					newList = []
+				t = speedInfo[0]
+				mNode = speedInfo[1]
+				mSpeed = float(speedInfo[2])
+				for mWay in nodeWayInfo[mNode]:
+					if mWay not in trafficGraph[t]:
+						trafficGraph[t][mWay] = []
+					trafficGraph[t][mWay].append(mSpeed)
+			orderId = data[1]
+			orderList = [data]
 		count += 1
+	if len(orderList) != 1:
+		speedList = handleOrder(orderList,startTime)
+		for speedInfo in speedList:
+			t = speedInfo[0]
+			mNode = speedInfo[1]
+			mSpeed = float(speedInfo[2])
+			for mWay in nodeWayInfo[mNode]:
+				if mWay not in trafficGraph[t]:
+					trafficGraph[t][mWay] = []
+				trafficGraph[t][mWay].append(mSpeed)
+	pos = 0
+	for item in trafficGraph:
+		for i in item:
+			sum = 0.0
+			for x in item[i]:
+				sum += x
+			sum /= len(item[i])
+			trafficGraph[pos][i] = sum
+		pos += 1
 	f.close()
-	toWrite = trafficGraph.reshape(T,W*H)
+	toWrite = json.dumps(trafficGraph)
 	print 'Writing file %s' % filename
-	np.savetxt(savePath + '/traffic_%s' % (filename[-4:]), toWrite,fmt = '%d')
+	f = open(savePath + '/speed_%s' % (filename[-4:]),'w')
+	f.write(toWrite)
+	#np.savetxt(savePath + '/traffic_%s' % (filename[-4:]), toWrite,fmt = '%d')
 
+dataToSpeed('../data/20161013')
+'''
 for i in range(1,32):
-	handleData('../data/gps/gps_201610%02d' % i)
+	dataToSpeed('../data/gps/gps_201610%02d' % i)
+	#handleData('../data/gps/gps_201610%02d' % i)
 
 for i in range(1,31):
-	handleData('../data/gps/gps_201611%02d' % i)
+	dataToSpeed('../data/gps/gps_201611%02d' % i)
+	#handleData('../data/gps/gps_201611%02d' % i)
+'''

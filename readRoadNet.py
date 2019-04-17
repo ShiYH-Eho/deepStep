@@ -1,6 +1,7 @@
 #code=utf-8
 from xml.dom.minidom import parse
 from const import *
+from coordTransform_utils import *
 import xml.dom.minidom
 
 def readXml(name):
@@ -15,7 +16,8 @@ def readNodes(mMap):
       nodeId = node.getAttribute('id')
       lat = node.getAttribute('lat')
       lon = node.getAttribute('lon')
-      infoNode[nodeId] = [lat,lon]
+      [gcj_lon,gcj_lat] = wgs84_to_gcj02(lon,lat)
+      infoNode[nodeId] = [gcj_lat,gcj_lon]
    return infoNode
  
 def readWays(mMap):
@@ -61,7 +63,7 @@ def readNetNodes(mMap):
    return infoNet
 
 def readNodeWay(mMap):
-   nodes = nMap.getElementsByTagName('node')
+   nodes = mMap.getElementsByTagName('node')
    nodeWay = {}
    for node in nodes:
       nodeId = node.getAttribute('id')
