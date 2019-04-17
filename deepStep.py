@@ -81,7 +81,7 @@ b_fc2 = bias_variable([H*W])
 #y = tf.nn.softmax(tf.matmul(h_drop, W_fc2) + b_fc2)
 
 
-y = tf.matmul(h_drop, W_fc2) + b_fc2 + 0.5
+y = tf.nn.relu(tf.floor(tf.matmul(h_drop, W_fc2) + b_fc2 + 0.5))
 
 loss = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y,y_))))
 train_step = tf.train.AdamOptimizer(1e-4).minimize(loss)

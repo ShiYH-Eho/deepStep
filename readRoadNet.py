@@ -17,7 +17,7 @@ def readNodes(mMap):
       lat = node.getAttribute('lat')
       lon = node.getAttribute('lon')
       [gcj_lon,gcj_lat] = wgs84_to_gcj02(lon,lat)
-      infoNode[nodeId] = [gcj_lat,gcj_lon]
+      infoNode[nodeId] = [gcj_lon,gcj_lat]
    return infoNode
  
 def readWays(mMap):

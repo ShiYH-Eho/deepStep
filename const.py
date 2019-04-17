@@ -50,4 +50,4 @@ def dis(lon1, lat1, lon2, lat2):
     a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
     c = 2 * math.asin(math.sqrt(a)) 
     r = 6371 # 地球平均半径，单位为公里
-    return c * r * 1000
+    return c * r
