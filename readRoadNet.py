@@ -59,7 +59,7 @@ def readNetNodes(mMap):
          nodeId = node.getAttribute('id')
          lat = node.getAttribute('lat')
          lon = node.getAttribute('lon')
-         infoNet[x][y][nodeId] = [lat,lon]
+         infoNet[x][y][nodeId] = [lon,lat]
    return infoNet
 
 def readNodeWay(mMap):
@@ -67,7 +67,8 @@ def readNodeWay(mMap):
    nodeWay = {}
    for node in nodes:
       nodeId = node.getAttribute('id')
-      nodeWay[nodeId] = []
+      if nodeId not in nodeWay:
+         nodeWay[nodeId] = []
       ways = node.getElementsByTagName('way')
       for way in ways:
          wayId = way.getAttribute('id')

@@ -9,6 +9,8 @@ infoNodes = readNodes(mMap) #dict
 infoWays = readWays(mMap) #dict
 infoRelations = readRelations(mMap) #dict
 
+
+
 '''
 #node-way
 nodeWay = {}
@@ -38,8 +40,16 @@ dom1.writexml(f,indent='',addindent='\t',newl='\n',encoding='UTF-8')
 f.close()
 '''
 
-'''
-#net-node
+#net-way
+nodeWay = {}
+
+for wayId in infoWays:
+	for nodeId in infoWays[wayId]:
+		if nodeId not in nodeWay:
+			nodeWay[nodeId] = []
+		if wayId not in nodeWay[nodeId]:
+			nodeWay[nodeId].append(wayId)
+
 netNode = []
 for i in range(W):
 	netNode.append([])
@@ -61,7 +71,61 @@ for i in range(W):
 		net.setAttribute('x',str(i))
 		net.setAttribute('y',str(j))
 		root1.appendChild(net)
+		wayList = []
 		for nodeId in netNode[i][j]:
+			if nodeId not in nodeWay:
+				print "Node %s%s have no way to locate" % (nodeId,str(infoNodes[nodeId]))
+				continue
+			for wayId in nodeWay[nodeId]:
+				if wayId not in wayList:
+					wayList.append(wayId)
+		for wayId in wayList:
+			t = dom1.createElement('way')
+			t.setAttribute('id',wayId)
+			net.appendChild(t)
+
+f = open('../data/map/net_way.xml','w')
+dom1.writexml(f,indent='',addindent='\t',newl='\n',encoding='UTF-8')
+f.close()
+
+'''
+#net-node
+
+nodeWay = {}
+
+for wayId in infoWays:
+	for nodeId in infoWays[wayId]:
+		if nodeId not in nodeWay:
+			nodeWay[nodeId] = []
+		if wayId not in nodeWay[nodeId]:
+			nodeWay[nodeId].append(wayId)
+
+netNode = []
+for i in range(W):
+	netNode.append([])
+	for j in range(H):
+		netNode[i].append({})
+for nodeId in infoNodes:
+	[x,y] = getPos(infoNodes[nodeId][0],infoNodes[nodeId][1])
+	if x < 0 or y < 0:
+		continue
+	netNode[x][y][nodeId] = infoNodes[nodeId]
+
+dom1 = xml.dom.minidom.Document()
+root1 = dom1.createElement('root')
+dom1.appendChild(root1)
+
+for i in range(W):
+	for j in range(H):
+		net = dom1.createElement('net')
+		net.setAttribute('x',str(i))
+		net.setAttribute('y',str(j))
+		net.setAttribute('lon_range',"%f-%f"%(lonStart + lonUnit * i,lonStart + lonUnit * (i + 1)))
+		net.setAttribute('lat_range',"%f-%f"%(latStart + latUnit * j,latStart + latUnit * (j + 1)))
+		root1.appendChild(net)
+		for nodeId in netNode[i][j]:
+			if nodeId not in nodeWay:
+				continue
 			t = dom1.createElement('node')
 			t.setAttribute('id',nodeId)
 			t.setAttribute('lon',netNode[i][j][nodeId][0])
@@ -72,7 +136,6 @@ f = open('../data/map/net_node.xml','w')
 dom1.writexml(f,indent='',addindent='\t',newl='\n',encoding='UTF-8')
 f.close()
 '''
-
 '''
 #manage
 dom1 = xml.dom.minidom.Document()
@@ -91,7 +154,7 @@ for wayId in infoWays:
 		node.setAttribute('lat',infoNodes[nodeId][1])
 		way.appendChild(node)
 
-f = open('../data/way_node.xml','w')
+f = open('../data/map/way_node.xml','w')
 dom1.writexml(f,indent='',addindent='\t',newl='\n',encoding='UTF-8')
 f.close()
 
@@ -109,12 +172,10 @@ for relationId in infoRelations:
 		way.setAttribute('id',wayId)
 		relation.appendChild(way)
 
-f = open('../data/relation_way.xml','w')
+f = open('../data/map/relation_way.xml','w')
 dom2.writexml(f,indent='',addindent='\t',newl='\n',encoding='UTF-8')
 f.close()
-'''
 
-'''
 #way-relation
 wayRelations = {}
 for relationId in infoRelations:
@@ -137,7 +198,7 @@ for wayId in wayRelations:
 		relation.setAttribute('id',relationId)
 		way.appendChild(relation)
 
-f = open('../data/way_relation.xml','w')
+f = open('../data/map/way_relation.xml','w')
 dom3.writexml(f,indent='',addindent='\t',newl='\n',encoding='UTF-8')
 f.close()
 '''
