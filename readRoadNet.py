@@ -4,6 +4,13 @@ from const import *
 from coordTransform_utils import *
 import xml.dom.minidom
 
+roadType = '''motorway, trunk, primary, secondary, tertiary, unclassified, residential,
+motorway_link, trunk_link, primary_link, secondary_link, living_street'''
+
+roadType = roadType.split(',')
+for i in range(len(roadType)):
+   roadType[i] = roadType[i].strip()
+
 def readXml(name):
    xmlDom = xml.dom.minidom.parse(name)
    mMap = xmlDom.documentElement
@@ -24,6 +31,17 @@ def readWays(mMap):
    ways = mMap.getElementsByTagName("way")
    infoWay = {}
    for way in ways:
+      tags = way.getElementsByTagName('tag')
+      isRoad = False
+      for tag in tags:
+         k = tag.getAttribute('k')
+         v = tag.getAttribute('v')
+         if k == 'highway':
+            for item in roadType:
+               if v == item:
+                  isRoad = True
+      if not isRoad:
+         continue
       wayId = way.getAttribute('id')
       infoWay[wayId] = []
       nds = way.getElementsByTagName('nd')
