@@ -7,11 +7,18 @@ import json
 from const import *
 from readRoadNet import *
 
-nodeWay = readXml('../data/map/node_way.xml')
-netNode = readXml('../data/map/net_node.xml')
+#nodeWay = readXml('../data/map/node_way.xml')
+#netNode = readXml('../data/map/net_node.xml')
+wayMap = readXml('../data/map/way.xml')
+netWay = readXml('../data/map/net_way.xml')
+nodeMap = readXml('../data/map/node.xml')
+#nodeWayInfo = readNodeWay(nodeWay)
+#netNodeInfo = readNetNode(netNode)
+netWayInfo = readNetWay(netWay)
+wayNameInfo = readWayName(wayMap)
+wayNodeInfo = readWayNode(wayMap)
+nodeInfo = readNode(nodeMap)
 
-nodeWayInfo = readNodeWay(nodeWay)
-netNodeInfo = readNetNodes(netNode)
 
 roadSpeedList = {}
 
@@ -24,15 +31,16 @@ def handleOrder(orderList,startTime):
 	speedList = []
 	mList = []
 	t = int(math.floor((int(newList[0][2]) - startTime) / timeUnit))
-	node = getNodeByPos(newList[0][3],newList[0][4],netNodeInfo)
+	wayId = getWayByPos(newList[0][3],newList[0][4],netWayInfo,wayNodeInfo,nodeInfo)
 	timeStamp = t
-	targetNode = node
-	print str(t) + ' ' + str(node)
+	targetWay = wayId
 	for i in range(len(newList) - 1):
 		#t = 
 		t = int(math.floor((int(newList[i][2]) - startTime) / timeUnit))
-		node = getNodeByPos(newList[i][3],newList[i][4],netNodeInfo)
-		print str(t) + ' ' + str(node)
+		wayId = getWayByPos(newList[i][3],newList[i][4],netWayInfo,wayNodeInfo,nodeInfo)
+		print 'related way:%s' % wayNameInfo[wayId]
+		print '-----------------------------------------------------------------'
+		#print '%s '
 		if t < 0:
 			t = 0
 		elif t >= T:
@@ -40,17 +48,23 @@ def handleOrder(orderList,startTime):
 		deltaT = int(newList[i + 1][2]) - int(newList[i][2])
 		distance = dis(float(newList[i][3]),float(newList[i][4]),float(newList[i + 1][3]),float(newList[i + 1][4]))
 		speed = distance / deltaT * 3600
-		if t == timeStamp and targetNode == node:
-			mList.append([t,node,speed])
+		if t == timeStamp and targetWay == wayId:
+			mList.append([t,wayId,speed])
 		else:
 			sum = 0.0
 			for item in mList:
 				sum += item[2]
 			sum /= len(mList)
-			speedList.append([timeStamp,targetNode,sum])
-			targetNode = node
+			speedList.append([timeStamp,wayId,sum])
+			targetWay = wayId
 			timeStamp = t
-			mList = [[t,node,speed]]
+			mList = [[t,wayId,speed]]
+	if len(mList) != 1:
+		sum = 0.0
+		for item in mList:
+			sum += item[2]
+		sum /= len(mList)
+		speedList.append([timeStamp,wayId,sum])
 	return speedList
 
 def handleData(filename):
@@ -111,35 +125,20 @@ def dataToSpeed(filename):
 			speedList = handleOrder(orderList,startTime)
 			for speedInfo in speedList:
 				t = speedInfo[0]
-				mNode = speedInfo[1]
+				mWay = speedInfo[1]
 				mSpeed = float(speedInfo[2])
-				for mWay in nodeWayInfo[mNode]:
-					if mWay not in trafficGraph[t]:
-						trafficGraph[t][mWay] = []
-					trafficGraph[t][mWay].append(mSpeed)
+				trafficGraph[t][mWay] = mSpeed
 			orderId = data[1]
 			orderList = [data]
 		count += 1
+	f.close()
 	if len(orderList) != 1:
 		speedList = handleOrder(orderList,startTime)
 		for speedInfo in speedList:
 			t = speedInfo[0]
-			mNode = speedInfo[1]
+			mWay = speedInfo[1]
 			mSpeed = float(speedInfo[2])
-			for mWay in nodeWayInfo[mNode]:
-				if mWay not in trafficGraph[t]:
-					trafficGraph[t][mWay] = []
-				trafficGraph[t][mWay].append(mSpeed)
-	pos = 0
-	for item in trafficGraph:
-		for i in item:
-			sum = 0.0
-			for x in item[i]:
-				sum += x
-			sum /= len(item[i])
-			trafficGraph[pos][i] = sum
-		pos += 1
-	f.close()
+			trafficGraph[t][mWay] = mSpeed
 	toWrite = json.dumps(trafficGraph)
 	print 'Writing file %s' % filename
 	f = open(savePath + '/speed_%s' % (filename[-4:]),'w')

@@ -1,47 +1,23 @@
-#code=utf-8
+#coding=utf-8
 from xml.dom.minidom import parse
 from const import *
 from coordTransform_utils import *
 import xml.dom.minidom
 
-roadType = '''motorway, trunk, primary, secondary, tertiary, unclassified, residential,
-motorway_link, trunk_link, primary_link, secondary_link, living_street'''
-
-roadType = roadType.split(',')
-for i in range(len(roadType)):
-   roadType[i] = roadType[i].strip()
-
-def readXml(name):
-   xmlDom = xml.dom.minidom.parse(name)
-   mMap = xmlDom.documentElement
-   return mMap
-
-def readNodes(mMap):
+def readNode(mMap):
    nodes = mMap.getElementsByTagName("node")
    infoNode = {}
    for node in nodes:
       nodeId = node.getAttribute('id')
       lat = node.getAttribute('lat')
       lon = node.getAttribute('lon')
-      [gcj_lon,gcj_lat] = wgs84_to_gcj02(lon,lat)
-      infoNode[nodeId] = [gcj_lon,gcj_lat]
+      infoNode[nodeId] = [lon,lat]
    return infoNode
- 
-def readWays(mMap):
+
+def readWayNode(mMap):
    ways = mMap.getElementsByTagName("way")
    infoWay = {}
    for way in ways:
-      tags = way.getElementsByTagName('tag')
-      isRoad = False
-      for tag in tags:
-         k = tag.getAttribute('k')
-         v = tag.getAttribute('v')
-         if k == 'highway':
-            for item in roadType:
-               if v == item:
-                  isRoad = True
-      if not isRoad:
-         continue
       wayId = way.getAttribute('id')
       infoWay[wayId] = []
       nds = way.getElementsByTagName('nd')
@@ -49,7 +25,20 @@ def readWays(mMap):
          infoWay[wayId].append(nd.getAttribute('ref'))
    return infoWay
 
-def readRelations(mMap):
+def readWayTag(mMap):
+   ways = mMap.getElementsByTagName("way")
+   infoWay = {}
+   for way in ways:
+      wayId = way.getAttribute('id')
+      infoWay[wayId] = {}
+      tags = way.getElementsByTagName('tag')
+      for tag in tags:
+         k = tag.getAttribute('k')
+         v = tag.getAttribute('v')
+         infoWay[wayId][k] = v
+   return infoWay
+
+def readRelation(mMap):
    relations = mMap.getElementsByTagName("relation")
    infoRelation = {}
    for relation in relations:
@@ -62,7 +51,7 @@ def readRelations(mMap):
          infoRelation[relationId].append(member.getAttribute('ref'))
    return infoRelation
 
-def readNetNodes(mMap):
+def readNetNode(mMap):
    nets = mMap.getElementsByTagName('net')
    infoNet = []
    for i in range(W):
@@ -80,6 +69,23 @@ def readNetNodes(mMap):
          infoNet[x][y][nodeId] = [lon,lat]
    return infoNet
 
+def readNetWay(mMap):
+   nets = mMap.getElementsByTagName('net')
+   infoNet = []
+   for i in range(W):
+      infoNet.append([])
+      for j in range(H):
+         infoNet[i].append([])
+   for net in nets:
+      x = int(net.getAttribute('x'))
+      y = int(net.getAttribute('y'))
+      ways = net.getElementsByTagName('way')
+      for way in ways:
+         wayId = way.getAttribute('id')
+         infoNet[x][y].append(wayId)
+   return infoNet
+   
+
 def readNodeWay(mMap):
    nodes = mMap.getElementsByTagName('node')
    nodeWay = {}
@@ -92,4 +98,21 @@ def readNodeWay(mMap):
          wayId = way.getAttribute('id')
          nodeWay[nodeId].append(wayId)
    return nodeWay
+def readWayName(mMap):
+   wayName = {}
+   ways = mMap.getElementsByTagName('way')
+   for way in ways:
+      hasName = False
+      wayId = way.getAttribute('id')
+      tags = way.getElementsByTagName('tag')
+      for tag in tags:
+         k = tag.getAttribute('k')
+         v = tag.getAttribute('v').encode('utf-8')
+         if 'name' == k:
+            wayName[wayId] = v
+            hasName = True
+      if not hasName:
+         wayName[wayId] = '不知名'
+   return wayName
+
 
