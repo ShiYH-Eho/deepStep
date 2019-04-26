@@ -107,7 +107,7 @@ def getWayByPos(lon,lat,netWayInfo,wayNodeInfo,nodeInfo):
 			if t < mDis:
 				mDis = t
 				targetWay = wayId
-	print 'targetWay:%s dis:%s' % (targetWay,mDis)
+	#print 'targetWay:%s dis:%s' % (targetWay,mDis)
 	return targetWay
 
 

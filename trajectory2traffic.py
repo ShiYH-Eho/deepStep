@@ -38,8 +38,8 @@ def handleOrder(orderList,startTime):
 		#t = 
 		t = int(math.floor((int(newList[i][2]) - startTime) / timeUnit))
 		wayId = getWayByPos(newList[i][3],newList[i][4],netWayInfo,wayNodeInfo,nodeInfo)
-		print 'related way:%s' % wayNameInfo[wayId]
-		print '-----------------------------------------------------------------'
+		#print 'related way:%s' % wayNameInfo[wayId]
+		#print '-----------------------------------------------------------------'
 		#print '%s '
 		if t < 0:
 			t = 0
