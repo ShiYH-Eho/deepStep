@@ -22,11 +22,12 @@ nodeInfo = readNode(nodeMap)
 
 roadSpeedList = {}
 
-savePath = '../data/speed_%dmin_%d*%d' % (timeUnit / 60,H,W)
+savePath = '../data/traffic_%dmin_%d*%d' % (timeUnit / 60,H,W)
+#savePath = '../data/speed_%dmin_%d*%d' % (timeUnit / 60,H,W)
 if not os.path.exists(savePath):
 	os.mkdir(savePath)
 
-def handleOrder(orderList,startTime):
+def orderToSpeed(orderList,startTime):
 	newList = sorted(orderList,key = lambda x : x[2])
 	speedList = []
 	mList = []
@@ -72,40 +73,51 @@ def handleOrder(orderList,startTime):
 		speedList.append([timeStamp,wayId,speedMean])
 	return speedList
 
-def handleData(filename):
-	trafficGraph = np.zeros((T,W,H),dtype = int)
+def dataToTraffic(filename):
+	trafficGraph = {}
 	f = open(filename,'r')
-	count = 0
+	count = -1
 	size = 0
+	data = f.readline().split(',')
 	orderId = ''
-	tSet = []
+	wayTimeMark = {}
+	wayCount = {}
 	startTime = timeStart + (60*60*24) * (int(filename[-2:]) - 1) + (60*60*24*31) * int(filename[-3:-2])
 	for line in f.readlines():
 		data = line.split(',')
-		if count % 100000 == 0:
+		count += 1
+		if len(data) != 5:
+			continue
+		if count % 10000 == 0:
 			count = 0
 			size += 1
 			print '%d.handle message of %s' % (size,data[0])
+		
 		t = int(math.floor((int(data[2]) - startTime) / timeUnit))
-		pos = getPos(float(data[3]),float(data[4]))
-		if pos[0] < 0 or pos[1] < 0:
-			print 'error: %s' % str(data)
-			continue
+		wayId = getWayByPos(float(data[3]),float(data[4]),netWayInfo,wayNodeInfo,nodeInfo)
+
 		if orderId != data[1]:
 			orderId = data[1]
-			tSet = []
-		if t < 0:
-			t = 0
-		elif t >= T:
-			t = T - 1
-		if t not in tSet:
-			tSet.append(t)
-			trafficGraph[t][pos[0]][pos[1]] += 1
-		count += 1
+			wayTimeMark = {}
+			wayCount = {}
+		if wayId not in wayCount:
+			wayCount[wayId] = 0
+		wayCount[wayId] += 1
+		if wayCount[wayId] < 3:
+			continue
+
+		if wayId not in wayTimeMark:
+			wayTimeMark[wayId] = [False for i in range(T)]
+		if wayId not in trafficGraph:
+			trafficGraph[wayId] = [0 for i in range(T)]
+		if not wayTimeMark[wayId][t]:
+			trafficGraph[wayId][t] += 1
+		wayTimeMark[wayId][t] = True
 	f.close()
-	toWrite = trafficGraph.reshape(T,W*H)
+	toWrite = json.dumps(trafficGraph,indent = 4)
 	print 'Writing file %s' % filename
-	np.savetxt(savePath + '/traffic_%s' % (filename[-4:]), toWrite,fmt = '%d')
+	f = open(savePath + '/traffic_%s' % (filename[-4:]),'w')
+	f.write(toWrite)
 
 def dataToSpeed(filename):
 	trafficGraph = {}
@@ -127,11 +139,9 @@ def dataToSpeed(filename):
 		if orderId == data[1]:
 			orderList.append(data)
 		else:
-			orderId = data[1]
-			orderList = [data]
 			if len(orderList) <= 1:
 				continue
-			speedList = handleOrder(orderList,startTime)
+			speedList = orderToSpeed(orderList,startTime)
 			for speedInfo in speedList:
 				t = speedInfo[0]
 				mWay = speedInfo[1]
@@ -139,10 +149,12 @@ def dataToSpeed(filename):
 				if mWay not in trafficGraph:
 					trafficGraph[mWay] = [[] for i in range(T)]
 				trafficGraph[mWay][t].append(mSpeed)
+			orderId = data[1]
+			orderList = [data]
 		count += 1
 	f.close()
 	if len(orderList) > 1:
-		speedList = handleOrder(orderList,startTime)
+		speedList = orderToSpeed(orderList,startTime)
 		for speedInfo in speedList:
 			t = speedInfo[0]
 			mWay = speedInfo[1]
@@ -164,11 +176,11 @@ def dataToSpeed(filename):
 	#np.savetxt(savePath + '/traffic_%s' % (filename[-4:]), toWrite,fmt = '%d')
 
 #dataToSpeed('../data/20161013')
-
+#dataToTraffic('../data/20161013')
 for i in range(1,32):
-	dataToSpeed('../data/gps/gps_201610%02d' % i)
-	#handleData('../data/gps/gps_201610%02d' % i)
+	#dataToSpeed('../data/gps/gps_201610%02d' % i)
+	dataToTraffic('../data/gps/gps_201610%02d' % i)
 
 for i in range(1,31):
-	dataToSpeed('../data/gps/gps_201611%02d' % i)
-	#handleData('../data/gps/gps_201611%02d' % i)
+	#dataToSpeed('../data/gps/gps_201611%02d' % i)
+	dataToTraffic('../data/gps/gps_201611%02d' % i)
