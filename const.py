@@ -98,11 +98,19 @@ def getWayByPos(lon,lat,netWayInfo,wayNodeInfo,nodeInfo):
 			y1 = float(y1)
 			x2 = float(x2)
 			y2 = float(y2)
+			xmin = min(x1,x2)
+			xmax = max(x1,x2)
+			ymin = min(y1,y2)
+			ymax = max(y1,y2)
 			A = y2 - y1
 			B = x1 - x2
 			C = y1*(x2-x1)-x1*(y2-y1)
 			x0 = (B**2 * lon - A*B*lat - A*C) / (A**2 + B**2)
 			y0 = (A**2 * lat - A*B*lon - B*C) / (A**2 + B**2)
+			t = mDis
+		#	if x < xmin or x > xmax or y < ymin or y > ymax:
+		#		t = min(dis(lon,lat,x1,y1),dis(lon,lat,x2,y2))
+			#else:
 			t = dis(lon,lat,x0,y0)
 			if t < mDis:
 				mDis = t

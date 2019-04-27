@@ -112,7 +112,7 @@ def readWayName(mMap):
             wayName[wayId] = v
             hasName = True
       if not hasName:
-         wayName[wayId] = '不知名'
+         wayName[wayId] = '未命名'
    return wayName
 
 

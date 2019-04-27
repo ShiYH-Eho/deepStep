@@ -18,6 +18,7 @@ ways = mMap.getElementsByTagName('way')
 for way in ways:
 	tags = way.getElementsByTagName('tag')
 	isRoad = False
+	hasName = False
 	newWay = dom1.createElement('way')
 	wayId = way.getAttribute('id')
 	newWay.setAttribute('id',wayId)
@@ -35,7 +36,9 @@ for way in ways:
 			for item in roadType:
 				if v == item:
 					isRoad = True
-	if not isRoad:
+		if k == 'name':
+			hasName = True
+	if not isRoad or not hasName:
 		continue
 	print 'get way %s' % wayId
 	nds = way.getElementsByTagName('nd')
