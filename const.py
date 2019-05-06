@@ -77,7 +77,7 @@ def getNodeByPos(lon,lat,netNodeInfo):
 					targetNode = nodeId
 	#print '%s src:%s dst:%s dis:%f' % (targetNode,str([lon,lat]),str(netNodeInfo[tx][ty][targetNode]),mDis)
 	return targetNode
-
+'''
 def getWayByPos(lon,lat,netWayInfo,wayNodeInfo,nodeInfo):
 	lon = float(lon)
 	lat = float(lat)
@@ -117,7 +117,7 @@ def getWayByPos(lon,lat,netWayInfo,wayNodeInfo,nodeInfo):
 				targetWay = wayId
 	#print 'targetWay:%s dis:%s' % (targetWay,mDis)
 	return targetWay
-
+'''
 
 def dis(lon1, lat1, lon2, lat2):
 	lon1, lat1, lon2, lat2 = map(math.radians, [float(lon1), float(lat1), float(lon2), float(lat2)])

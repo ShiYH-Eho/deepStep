@@ -19,6 +19,7 @@ wayNameInfo = readWayName(wayMap)
 wayNodeInfo = readWayNode(wayMap)
 nodeInfo = readNode(nodeMap)
 
+
 def getWayByPos(lon,lat):
 	lon = float(lon)
 	lat = float(lat)
@@ -41,12 +42,10 @@ def getWayByPos(lon,lat):
 			y1 = float(y1)
 			x2 = float(x2)
 			y2 = float(y2)
-			'''
 			xmin = min(x1,x2)
 			xmax = max(x1,x2)
 			ymin = min(y1,y2)
 			ymax = max(y1,y2)
-			'''
 			A = y2 - y1
 			B = x1 - x2
 			C = y1*(x2-x1)-x1*(y2-y1)
@@ -62,6 +61,7 @@ def getWayByPos(lon,lat):
 				targetWay = wayId
 	#print 'targetWay:%s dis:%s' % (targetWay,mDis)
 	return targetWay
+
 
 roadSpeedList = {}
 
@@ -116,47 +116,42 @@ def orderToSpeed(orderList,startTime):
 		speedList.append([timeStamp,wayId,speedMean])
 	return speedList
 
-def orderToTraffic(newList,startTime):
-	wayList = {}
-	mList = []
-	lenth = len(newList)
-	start = 0
-	end = lenth - 1
-	way1 = getWayByPos(newList[start][3],newList[start][4])
-	way2 = getWayByPos(newList[end][3],newList[end][4])
-	t1 = int(math.floor((int(newList[start][2]) - startTime) / timeUnit))
-	t2 = int(math.floor((int(newList[end][2]) - startTime) / timeUnit))
-	if t2 < 0:
-		t2 = 0
-	elif t2 >= T:
-		t2 = T - 1
-	if t1 < 0:
-		t1 = 0
-	elif t1 >= T:
-		t1 = T - 1
-	if way1 == way2 and t1 == t2:
-		#print 'related way:%s' % wayNameInfo[way1]
-		wayList[way1 + ',' + str(t1)] = lenth
-	else:
-		wayList1 = orderToTraffic(newList[0:lenth / 2],startTime)
-		wayList2 = orderToTraffic(newList[lenth/2:],startTime)
-		for key in wayList1:
-			if key not in wayList:
-				wayList[key] = 0
-			wayList[key] += wayList1[key]
-		for key in wayList2:
-			if key not in wayList:
-				wayList[key] = 0
-			wayList[key] += wayList2[key]
-	#wayList = list(set(wayList))
-	return wayList
+def orderToTraffic(orderList,startTime):
+	newList = sorted(orderList,key = lambda x : x[2])
+	timeStamp = -1
+	wayStamp = ''
+	count = -1
+	res = {}
+	for i in range(len(newList)):
+		count += 1
+		if count % 5 == 0:
+			count = 0
+			t = int(math.floor((int(newList[i][2]) - startTime) / timeUnit))
+			wayId = getWayByPos(newList[i][3],newList[i][4])
+			if wayId == '':
+				continue
+			if t < 0:
+				t = 0
+			elif t >= T:
+				t = T - 1
 
+			if t != timeStamp or wayId != wayStamp:
+				if wayId not in res:
+					res[wayId] = []
+				if t not in res[wayId]:
+					res[wayId].append(t)
+				timeStamp = t
+				wayStamp = wayId
+	return res
+
+
+'''
 def dataToTraffic(filename):
 	trafficGraph = {}
 	f = open(filename,'r')
 	count = -1
 	size = 0
-	data = ''# f.readline().split(',')
+	data = f.readline().split(',')
 	orderId = ''
 	wayTimeMark = {}
 	wayCount = {}
@@ -164,39 +159,31 @@ def dataToTraffic(filename):
 	for line in f.readlines():
 		data = line.split(',')
 		count += 1
-		if len(data) != 5:#or count % 3 != 0:
+		if len(data) != 5:
 			continue
 		if count % 10000 == 0:
 			count = 0
 			size += 1
 			print '%d.handle message of %s' % (size,data[0])
-		#count += 1
+		
 		t = int(math.floor((int(data[2]) - startTime) / timeUnit))
 		wayId = getWayByPos(float(data[3]),float(data[4]))
-		if wayId == '':
-			continue
-		if t < 0:
-			t = 0
-		elif t >= T:
-			t = T - 1
 
 		if orderId != data[1]:
 			orderId = data[1]
 			wayTimeMark = {}
 			wayCount = {}
-		
 		if wayId not in wayCount:
 			wayCount[wayId] = 0
 		wayCount[wayId] += 1
 		if wayCount[wayId] < 3:
 			continue
-		
+
 		if wayId not in wayTimeMark:
 			wayTimeMark[wayId] = [False for i in range(T)]
 		if wayId not in trafficGraph:
 			trafficGraph[wayId] = [0 for i in range(T)]
 		if not wayTimeMark[wayId][t]:
-			#print 'related way:%s' % wayNameInfo[wayId]
 			trafficGraph[wayId][t] += 1
 		wayTimeMark[wayId][t] = True
 	f.close()
@@ -204,9 +191,8 @@ def dataToTraffic(filename):
 	print 'Writing file %s' % filename
 	f = open(savePath + '/traffic_%s' % (filename[-4:]),'w')
 	f.write(toWrite)
-
-
 '''
+
 def dataToTraffic(filename):
 	trafficGraph = {}
 	f = open(filename,'r')
@@ -230,35 +216,29 @@ def dataToTraffic(filename):
 		if orderId == data[1]:
 			orderList.append(data)
 		else:
-			newList = sorted(orderList,key = lambda x : x[2])
-			infoList = orderToTraffic(newList,startTime)
-			for item in infoList:
-				if infoList[item] < 4:
-					continue
-				[wayId,t] = item.split(',')
+			
+			infoList = orderToTraffic(orderList,startTime)
+			for wayId in infoList:
+				#print '%s : %s' %(wayNameInfo[wayId],infoList[wayId])
 				if wayId not in trafficGraph:
 					trafficGraph[wayId] = [0 for i in range(T)]
-				trafficGraph[wayId][int(t)] += 1
-			orderList = [data]
-			orderId = data[1]
+				for t in infoList[wayId]:
+					trafficGraph[wayId][int(t)] += 1
 	f.close()
 	if len(orderList) >= 1:
-		newList = sorted(orderList,key = lambda x : x[2])
-		infoList = orderToTraffic(newList,startTime)
-		for item in infoList:
-			if infoList[item] < 4:
-				continue
-			[wayId,t] = item.split(',')
-			#print 'related way:%s' % wayNameInfo[wayId]
+		infoList = orderToTraffic(orderList,startTime)
+		for wayId in infoList:
+			print '%s : %s' %(wayNameInfo[wayId],infoList[wayId])
 			if wayId not in trafficGraph:
 				trafficGraph[wayId] = [0 for i in range(T)]
-			trafficGraph[wayId][int(t)] += 1
+			for t in infoList[wayId]:
+				trafficGraph[wayId][int(t)] += 1
 	
 	toWrite = json.dumps(trafficGraph,indent = 4)
 	print 'Writing file %s' % filename
 	f = open(savePath + '/traffic_%s' % (filename[-4:]),'w')
 	f.write(toWrite)
-'''
+
 def dataToSpeed(filename):
 	trafficGraph = {}
 	f = open(filename,'r')
@@ -318,10 +298,10 @@ def dataToSpeed(filename):
 #dataToSpeed('../data/20161013')
 #dataToTraffic('../data/20161013')
 
-for i in range(8,32):
+#for i in range(1,32):
 	#dataToSpeed('../data/gps/gps_201610%02d' % i)
-	dataToTraffic('../data/gps/gps_201610%02d' % i)
+#	dataToTraffic('../data/gps/gps_201610%02d' % i)
 
-for i in range(1,31):
+for i in range(3,31):
 	#dataToSpeed('../data/gps/gps_201611%02d' % i)
 	dataToTraffic('../data/gps/gps_201611%02d' % i)
