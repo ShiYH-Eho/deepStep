@@ -4,17 +4,13 @@ from readRoadNet import *
 import numpy as np
 from const import *
 from coordTransform_utils import *
+from readData import *
 
+import tensorflow as tf 
 
-netWay = readXml('../data/map/net_way.xml')
-info = readNetWay(netWay)
-
-size = 0
-pos = []
-for x in range(W):
-	for y in range(H):
-		if len(info[x][y]) > size:
-			size = len(info[x][y])
-			pos = [x,y]
-
-print '%s : %s' % (str(pos),size)
+a = tf.constant([1,2])
+b = tf.constant([2,4])
+c = tf.multiply(a, b)
+sess = tf.Session()
+print sess.run(c)
+sess.close()

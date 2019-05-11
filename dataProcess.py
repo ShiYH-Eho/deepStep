@@ -79,6 +79,13 @@ dom1 = xml.dom.minidom.Document()
 root1 = dom1.createElement('root')
 dom1.appendChild(root1)
 
+netWay = []
+for i in range(W):
+	netWay.append([])
+	for j in range(H):
+		netWay[i].append([])
+	#netWay[i] = [[] for j in range[H]]
+
 for i in range(W):
 	for j in range(H):
 		net = dom1.createElement('net')
@@ -90,6 +97,8 @@ for i in range(W):
 			for wayId in nodeWay[nodeId]:
 				if wayId not in wayList:
 					wayList.append(wayId)
+		wayList.sort()
+		netWay[i][j].extend(wayList)
 		for wayId in wayList:
 			t = dom1.createElement('way')
 			t.setAttribute('id',wayId)
@@ -99,4 +108,32 @@ f = open('../data/map/net_way.xml','w')
 dom1.writexml(f,indent='',addindent='\t',newl='\n',encoding='UTF-8')
 f.close()
 
+
+#way-net
+dom1 = xml.dom.minidom.Document()
+root1 = dom1.createElement('root')
+dom1.appendChild(root1)
+
+wayNet = {}
+
+for i in range(W):
+	for j in range(H):
+		for wayId in netWay[i][j]:
+			if wayId not in wayNet:
+				wayNet[wayId] = []
+			wayNet[wayId].append([i,j])
+
+for wayId in wayNet:
+	way = dom1.createElement('way')
+	way.setAttribute('id',wayId)
+	root1.appendChild(way)
+	for pos in wayNet[wayId]:
+		net = dom1.createElement('net')
+		net.setAttribute('x',str(pos[0]))
+		net.setAttribute('y',str(pos[1]))
+		way.appendChild(net)
+
+f = open('../data/map/way_net.xml','w')
+dom1.writexml(f,indent='',addindent='\t',newl='\n',encoding='UTF-8')
+f.close()
 

@@ -9,6 +9,11 @@ latEnd = 30.73
 lonStart = 104.04
 lonEnd = 104.13
 
+wayNum = 1357
+channelNum = 23
+
+history = 12
+
 H = 32
 W = 32
 

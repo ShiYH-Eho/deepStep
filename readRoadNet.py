@@ -83,6 +83,9 @@ def readNetWay(mMap):
       for way in ways:
          wayId = way.getAttribute('id')
          infoNet[x][y].append(wayId)
+   for i in range(W):
+      for j in range(H):
+         infoNet[i][j].sort()
    return infoNet
    
 
@@ -114,5 +117,22 @@ def readWayName(mMap):
       if not hasName:
          wayName[wayId] = '未命名'
    return wayName
+
+def readWayNet(mMap):
+   wayNet = {}
+   ways = mMap.getElementsByTagName('way')
+   for way in ways:
+      wayId = way.getAttribute('id')
+      nets = way.getElementsByTagName('net')
+      wayNet[wayId] = []
+      for net in nets:
+         x = net.getAttribute('x')
+         y = net.getAttribute('y')
+         wayNet[wayId].append([int(x),int(y)])
+   return wayNet
+
+
+
+
 
 

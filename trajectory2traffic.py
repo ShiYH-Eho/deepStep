@@ -317,11 +317,12 @@ def dataToSpeed(filename):
 
 #dataToSpeed('../data/20161013')
 #dataToTraffic('../data/20161013')
-
-for i in range(8,32):
+'''
+for i in range(31,32):
 	#dataToSpeed('../data/gps/gps_201610%02d' % i)
 	dataToTraffic('../data/gps/gps_201610%02d' % i)
-
-for i in range(1,31):
+'''
+for i in range(7,8):
 	#dataToSpeed('../data/gps/gps_201611%02d' % i)
 	dataToTraffic('../data/gps/gps_201611%02d' % i)
+
