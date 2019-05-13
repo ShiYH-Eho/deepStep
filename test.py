@@ -5,12 +5,16 @@ import numpy as np
 from const import *
 from coordTransform_utils import *
 from readData import *
+import json
+import tensorflow as tf
 
-import tensorflow as tf 
+netMark = []
+with open('../data/map/netMark.js') as f:
+	netMark = json.load(f)
+sum = 0
+for item1 in netMark:
+	for item2 in item1:
+		for num in item2:
+			sum += num
 
-a = tf.constant([1,2])
-b = tf.constant([2,4])
-c = tf.multiply(a, b)
-sess = tf.Session()
-print sess.run(c)
-sess.close()
+print sum

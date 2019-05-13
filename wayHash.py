@@ -72,13 +72,12 @@ while True:
 	a = input('input 2 to continue:')
 	if deal:
 		break
-
 toWrite = json.dumps(wayHash)
 f = open('../data/map/wayHash.js','w')
 f.write(toWrite)
 f.close()
-'''
 
+'''
 wayHash = {}
 with open('../data/map/wayHash') as f:
 	wayHash = json.load(f)

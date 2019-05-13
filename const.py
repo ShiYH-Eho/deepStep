@@ -11,6 +11,7 @@ lonEnd = 104.13
 
 wayNum = 1357
 channelNum = 23
+markChannelNum = 3173
 
 history = 12
 
