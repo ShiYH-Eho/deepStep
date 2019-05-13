@@ -55,14 +55,14 @@ b_output = bias_variable([channelNum])
 h_time_conv_1 = tf.nn.relu(conv3d(x,W_time_1,'SAME') + b_time_1)
 h_spatial_conv_1 = tf.nn.relu(conv3d(h_time_conv_1, W_spatial_1,'SAME') + b_spatial_1)
 h_spatial_temporal_conv_1 = tf.nn.relu(conv3d(h_spatial_conv_1, W_spatial_temporal_1,'SAME') + b_spatial_temporal_1)
+h_output = tf.nn.relu(conv3d(h_spatial_temporal_conv_1,W_output,'VALID') + b_output)
 '''
 h_time_conv_2 = tf.nn.relu(conv3d(h_spatial_temporal_conv_1,W_time_2,'SAME') + b_time_2)
 h_spatial_conv_2 = tf.nn.relu(conv3d(h_time_conv_2, W_spatial_2,'SAME') + b_spatial_2)
 h_spatial_temporal_conv_2 = tf.nn.relu(conv3d(h_spatial_conv_2, W_spatial_temporal_2,'SAME') + b_spatial_temporal_2)
 '''
 
-h_output = tf.nn.relu(conv3d(h_spatial_temporal_conv_1,W_output,'VALID') + b_output)
-
+#dropout
 h_flat = tf.reshape(h_output, [-1, W * H * channelNum])
 
 W_fc1 = weight_variable([W * H * channelNum, 1024])

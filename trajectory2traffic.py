@@ -7,13 +7,9 @@ import json
 from const import *
 from readRoadNet import *
 
-#nodeWay = readXml('../data/map/node_way.xml')
-#netNode = readXml('../data/map/net_node.xml')
 wayMap = readXml('../data/map/way.xml')
 netWay = readXml('../data/map/net_way.xml')
 nodeMap = readXml('../data/map/node.xml')
-#nodeWayInfo = readNodeWay(nodeWay)
-#netNodeInfo = readNetNode(netNode)
 netWayInfo = readNetWay(netWay)
 wayNameInfo = readWayName(wayMap)
 wayNodeInfo = readWayNode(wayMap)
